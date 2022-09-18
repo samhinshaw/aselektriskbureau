@@ -10,6 +10,10 @@ import time
 
 # mock GPIO class
 class GPIO:
+    BCM = "BCM"
+    IN = "IN"
+    BOTH = "BOTH"
+
     @staticmethod
     def input(*args):
         print(f"input{args}")
@@ -23,8 +27,8 @@ class GPIO:
         print(f"setup{args}")
 
     @staticmethod
-    def add_event_detect(*args):
-        print(f"add_event_detect{args}")
+    def add_event_detect(*args, **kwargs):
+        print(f"add_event_detect{args}, {kwargs}")
 
 
 class RotaryDial:

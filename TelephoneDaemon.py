@@ -2,9 +2,9 @@ import os
 import queue
 import signal
 import sys
-import yaml
-
+from yaml import load, Loader
 from threading import Timer
+
 from modules.Ringtone import Ringtone
 from modules.RotaryDial import RotaryDial
 from modules.Webserver import Webserver
@@ -32,7 +32,7 @@ class TelephoneDaemon:
     def __init__(self):
         print("[STARTUP]")
 
-        self.config = yaml.load(open("configuration.yml", "r"))
+        self.config = load(open("configuration.yml", "r"), Loader=Loader)
 
         signal.signal(signal.SIGINT, self.OnSignal)
 
