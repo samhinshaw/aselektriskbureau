@@ -8,8 +8,9 @@ import RPi.GPIO as GPIO
 from threading import Timer
 import time
 
+
 class RotaryDial:
-    
+
     # We'll be reading BCM GPIO 4 (pin 7 on board)
     pin_rotary = 4
 
@@ -17,7 +18,7 @@ class RotaryDial:
     pin_onhook = 3
 
     # After 900ms, we assume the rotation is done and we get
-    # the final digit. 
+    # the final digit.
     digit_timeout = 0.9
 
     # We keep a counter to count each pulse.
@@ -38,19 +39,21 @@ class RotaryDial:
 
         # Listen for rotary movements
         GPIO.setup(self.pin_rotary, GPIO.IN)
-        GPIO.add_event_detect(self.pin_rotary, GPIO.BOTH, callback = self.NumberCounter)
-        
+        GPIO.add_event_detect(self.pin_rotary, GPIO.BOTH, callback=self.NumberCounter)
+
         # Listen for on/off hooks
         GPIO.setup(self.pin_onhook, GPIO.IN)
-        GPIO.add_event_detect(self.pin_onhook, GPIO.BOTH, callback = self.HookEvent, bouncetime=100)
-        
+        GPIO.add_event_detect(
+            self.pin_onhook, GPIO.BOTH, callback=self.HookEvent, bouncetime=100
+        )
+
         self.onhook_timer = Timer(2, self.verifyHook)
         self.onhook_timer.start()
 
     # Handle counting of rotary movements and respond with digit after timeout
     def NumberCounter(self, channel):
         input = GPIO.input(self.pin_rotary)
-        #print "[INPUT] %s (%s)" % (input, channel)
+        print(f"[INPUT] {input} ({channel})")
         if input and not self.last_input:
             self.current_digit += 1
 
@@ -60,9 +63,10 @@ class RotaryDial:
             self.number_timeout = Timer(self.digit_timeout, self.FoundNumber)
             self.number_timeout.start()
         self.last_input = input
-   #     time.sleep(0.002)
 
-    # Wrapper around the off/on hook event 
+    #     time.sleep(0.002)
+
+    # Wrapper around the off/on hook event
     def HookEvent(self, channel):
         input = GPIO.input(self.pin_onhook)
         if input:
@@ -77,7 +81,7 @@ class RotaryDial:
 
     def verifyHook(self):
         while self.should_verify_hook:
-            state = GPIO.input(self.pin_onhook) 
+            state = GPIO.input(self.pin_onhook)
             self.OnVerifyHook(state)
             time.sleep(1)
 
@@ -89,7 +93,9 @@ class RotaryDial:
         self.current_digit = 0
 
     # Handles the callbacks we're supplying
-    def RegisterCallback(self, NumberCallback, OffHookCallback, OnHookCallback, OnVerifyHook):
+    def RegisterCallback(
+        self, NumberCallback, OffHookCallback, OnHookCallback, OnVerifyHook
+    ):
         self.NumberCallback = NumberCallback
         self.OffHookCallback = OffHookCallback
         self.OnHookCallback = OnHookCallback

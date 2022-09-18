@@ -10,10 +10,12 @@ from modules.Ringtone import Ringtone
 from modules.RotaryDial import RotaryDial
 from modules.Webserver import Webserver
 from modules.linphone import Wrapper
+
 # alternative SIP-implementation
-#from modules.pjsip.SipClient import SipClient
+# from modules.pjsip.SipClient import SipClient
 
 callback_queue = Queue.Queue()
+
 
 class TelephoneDaemon:
     # Number to be dialed
@@ -32,9 +34,9 @@ class TelephoneDaemon:
     config = None
 
     def __init__(self):
-        print "[STARTUP]"
+        print("[STARTUP]")
 
-        self.config = yaml.load(file("configuration.yml",'r'))
+        self.config = yaml.load(file("configuration.yml", "r"))
 
         signal.signal(signal.SIGINT, self.OnSignal)
 
@@ -42,16 +44,30 @@ class TelephoneDaemon:
         self.Ringtone = Ringtone(self.config)
 
         # This is to indicate boot complete. Not very realistic, but fun.
-        #self.Ringtone.playfile(config["soundfiles"]["startup"])
+        # self.Ringtone.playfile(config["soundfiles"]["startup"])
 
         # Rotary dial
         self.RotaryDial = RotaryDial()
-        self.RotaryDial.RegisterCallback(NumberCallback = self.GotDigit, OffHookCallback = self.OffHook, OnHookCallback = self.OnHook, OnVerifyHook = self.OnVerifyHook)
+        self.RotaryDial.RegisterCallback(
+            NumberCallback=self.GotDigit,
+            OffHookCallback=self.OffHook,
+            OnHookCallback=self.OnHook,
+            OnVerifyHook=self.OnVerifyHook,
+        )
 
         self.SipClient = Wrapper.Wrapper()
         self.SipClient.StartLinphone()
-        self.SipClient.SipRegister(self.config["sip"]["username"], self.config["sip"]["hostname"], self.config["sip"]["password"])
-        self.SipClient.RegisterCallbacks(OnIncomingCall = self.OnIncomingCall, OnOutgoingCall = self.OnOutgoingCall, OnRemoteHungupCall = self.OnRemoteHungupCall, OnSelfHungupCall = self.OnSelfHungupCall)
+        self.SipClient.SipRegister(
+            self.config["sip"]["username"],
+            self.config["sip"]["hostname"],
+            self.config["sip"]["password"],
+        )
+        self.SipClient.RegisterCallbacks(
+            OnIncomingCall=self.OnIncomingCall,
+            OnOutgoingCall=self.OnOutgoingCall,
+            OnRemoteHungupCall=self.OnRemoteHungupCall,
+            OnSelfHungupCall=self.OnSelfHungupCall,
+        )
 
         # Start SipClient thread
         self.SipClient.start()
@@ -62,7 +78,7 @@ class TelephoneDaemon:
         raw_input("Waiting.\n")
 
     def OnHook(self):
-        print "[PHONE] On hook"
+        print("[PHONE] On hook")
         self.offHook = False
         self.Ringtone.stophandset()
         # Hang up calls
@@ -70,17 +86,16 @@ class TelephoneDaemon:
             self.SipClient.SipHangup()
 
     def OffHook(self):
-        print "[PHONE] Off hook"
+        print("[PHONE] Off hook")
         self.offHook = True
         # Reset current number when off hook
         self.dial_number = ""
-
 
         self.offHookTimeoutTimer = Timer(5, self.OnOffHookTimeout)
         self.offHookTimeoutTimer.start()
 
         # TODO: State for ringing, don't play tone if ringing :P
-        print "Try to start dialtone"
+        print("Try to start dialtone")
         self.Ringtone.starthandset(self.config["soundfiles"]["dialtone"])
 
         self.Ringtone.stop()
@@ -93,30 +108,30 @@ class TelephoneDaemon:
             self.Ringtone.stophandset()
 
     def OnIncomingCall(self):
-        print "[INCOMING]"
+        print("[INCOMING]")
         self.Ringtone.start()
 
     def OnOutgoingCall(self):
-        print "[OUTGOING] "
+        print("[OUTGOING] ")
 
     def OnRemoteHungupCall(self):
-        print "[HUNGUP] Remote disconnected the call"
+        print("[HUNGUP] Remote disconnected the call")
         # Now we want to play busy-tone..
         self.Ringtone.starthandset(self.config["soundfiles"]["busytone"])
 
     def OnSelfHungupCall(self):
-        print "[HUNGUP] Local disconnected the call"
+        print("[HUNGUP] Local disconnected the call")
 
     def OnOffHookTimeout(self):
-        print "[OFFHOOK TIMEOUT]"
-        #self.Ringtone.stophandset()
-        #self.Ringtone.starthandset(self.config["soundfiles"]["timeout"])
+        print("[OFFHOOK TIMEOUT]")
+        # self.Ringtone.stophandset()
+        # self.Ringtone.starthandset(self.config["soundfiles"]["timeout"])
 
     def GotDigit(self, digit):
-        print "[DIGIT] Got digit: %s" % digit
+        print(f"[DIGIT] Got digit: {digit}")
         self.Ringtone.stophandset()
         self.dial_number += str(digit)
-        print "[NUMBER] We have: %s" % self.dial_number
+        print(f"[NUMBER] We have: {self.dial_number}")
 
         # Shutdown command, since our filesystem isn't read only (yet?)
         # This hopefully prevents dataloss.
@@ -127,18 +142,20 @@ class TelephoneDaemon:
 
         if len(self.dial_number) == 8:
             if self.offHook:
-                print "[PHONE] Dialing number: %s" % self.dial_number
+                print(f"[PHONE] Dialing number: {self.dial_number}")
                 self.SipClient.SipCall(self.dial_number)
                 self.dial_number = ""
 
     def OnSignal(self, signal, frame):
-        print "[SIGNAL] Shutting down on %s" % signal
+        print(f"[SIGNAL] Shutting down on {signal}")
         self.RotaryDial.StopVerifyHook()
         self.SipClient.StopLinphone()
         sys.exit(0)
 
+
 def main():
     TDaemon = TelephoneDaemon()
+
 
 if __name__ == "__main__":
     main()

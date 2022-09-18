@@ -3,6 +3,7 @@ import time
 import alsaaudio
 import wave
 
+
 class Ringtone:
     shouldring = 0
     ringtone = None
@@ -34,7 +35,7 @@ class Ringtone:
         self.shouldplayhandset = 1
         self.handsetfile = file
         if self.timerHandset is not None:
-            print "[RINGTONE] Handset already playing?"
+            print("[RINGTONE] Handset already playing?")
             return
 
         self.timerHandset = Timer(0, self.playhandset)
@@ -47,12 +48,12 @@ class Ringtone:
             self.timerHandset = None
 
     def playhandset(self):
-        print "Starting dialtone"
+        print("Starting dialtone")
         wv = wave.open(self.handsetfile)
         device = alsaaudio.PCM(card="plug:external")
-        #device.setchannels(wv.getnchannels())
-        #device.setrate(wv.getframerate())
-        #device.setperiodsize(320)
+        # device.setchannels(wv.getnchannels())
+        # device.setrate(wv.getframerate())
+        # device.setperiodsize(320)
 
         data = wv.readframes(320)
         while data and self.shouldplayhandset:
@@ -60,7 +61,6 @@ class Ringtone:
             data = wv.readframes(320)
         wv.rewind()
         wv.close()
-
 
     def playfile(self, file):
         wv = wave.open(file)
@@ -80,12 +80,11 @@ class Ringtone:
         if self.ringfile is not None:
             self.ringfile.rewind()
         else:
-            self.ringfile = wave.open(self.config["soundfiles"]["ringtone"], 'rb')
+            self.ringfile = wave.open(self.config["soundfiles"]["ringtone"], "rb")
             self.device = alsaaudio.PCM(card="pulse")
             self.device.setchannels(self.ringfile.getnchannels())
             self.device.setrate(self.ringfile.getframerate())
             self.device.setperiodsize(320)
-
 
         while self.shouldring:
             data = self.ringfile.readframes(320)
