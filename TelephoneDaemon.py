@@ -1,6 +1,5 @@
 import os
-import Queue
-import threading
+import queue
 import signal
 import sys
 import yaml
@@ -11,10 +10,7 @@ from modules.RotaryDial import RotaryDial
 from modules.Webserver import Webserver
 from modules.linphone import Wrapper
 
-# alternative SIP-implementation
-# from modules.pjsip.SipClient import SipClient
-
-callback_queue = Queue.Queue()
+callback_queue = queue.Queue()
 
 
 class TelephoneDaemon:
@@ -36,7 +32,7 @@ class TelephoneDaemon:
     def __init__(self):
         print("[STARTUP]")
 
-        self.config = yaml.load(file("configuration.yml", "r"))
+        self.config = yaml.load(open("configuration.yml", "r"))
 
         signal.signal(signal.SIGINT, self.OnSignal)
 
@@ -75,7 +71,7 @@ class TelephoneDaemon:
         # Web interface to enable remote configuration and debugging.
         self.Webserver = Webserver(self)
 
-        raw_input("Waiting.\n")
+        input("Waiting.\n")
 
     def OnHook(self):
         print("[PHONE] On hook")

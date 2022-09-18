@@ -4,9 +4,27 @@
 # 9 is 9 pulses
 # 0 is 10 pulses
 
-import RPi.GPIO as GPIO
 from threading import Timer
 import time
+
+
+# mock GPIO class
+class GPIO:
+    @staticmethod
+    def input(*args):
+        print(f"input{args}")
+
+    @staticmethod
+    def setmode(*args):
+        print(f"setmode{args}")
+
+    @staticmethod
+    def setup(*args):
+        print(f"setup{args}")
+
+    @staticmethod
+    def add_event_detect(*args):
+        print(f"add_event_detect{args}")
 
 
 class RotaryDial:

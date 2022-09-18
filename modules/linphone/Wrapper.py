@@ -1,6 +1,5 @@
-import sys, os
 from subprocess import Popen, PIPE
-import thread, threading
+import threading
 
 
 class Wrapper(threading.Thread):
